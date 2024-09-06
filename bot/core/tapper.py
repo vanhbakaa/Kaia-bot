@@ -1,6 +1,6 @@
 import asyncio
 from time import time
-from urllib.parse import unquote, quote
+from urllib.parse import unquote
 
 import aiohttp
 from aiocfscrape import CloudflareScraper
@@ -8,7 +8,6 @@ from aiohttp_proxy import ProxyConnector
 from better_proxy import Proxy
 from pyrogram import Client
 from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered, FloodWait
-from pyrogram.raw import functions
 from pyrogram.raw.types import InputBotAppShortName
 from pyrogram.raw.functions.messages import RequestAppWebView
 from bot.core.agents import generate_random_user_agent
@@ -18,7 +17,7 @@ import requests
 from bot.utils import logger
 from bot.exceptions import InvalidSession
 from .headers import headers
-from random import randint, uniform
+from random import randint
 from datetime import datetime, timedelta
 
 api_auth = 'https://app.wallacy.io/spinky/api/x/auth-telegram-webapp'
@@ -104,36 +103,38 @@ class Tapper:
             await asyncio.sleep(delay=3)
 
 
-    async def check_proxy(self, http_client: aiohttp.ClientSession, proxy: Proxy) -> None:
+    async def check_proxy(self, http_client: aiohttp.ClientSession, proxy: Proxy):
         try:
             response = await http_client.get(url='https://httpbin.org/ip', timeout=aiohttp.ClientTimeout(5))
             ip = (await response.json()).get('origin')
             logger.info(f"{self.session_name} | Proxy IP: {ip}")
+            return True
         except Exception as error:
             logger.error(f"{self.session_name} | Proxy: {proxy} | Error: {error}")
+            return False
 
 
-    async def get_user_data(self, http_client: aiohttp.ClientSession, query_id):
+    def get_user_data(self, query_id, session: requests.Session):
         payload = {
             "initData": query_id
         }
         try:
-            response = await http_client.post(api_auth, json=payload)
-            if response.status == 200:
-                data_json = await response.json()
+            response = session.post(api_auth, json=payload)
+            if response.status_code == 200:
+                data_json = response.json()
                 return data_json
             else:
-                logger.error(f"Get user data failed. Status code: {response.status}")
+                logger.error(f"Get user data failed. Status code: {response.status_code}")
         except Exception as e:
             logger.error(f"{self.session_name} cant get user data. Error: {e}")
 
-    def claim(self, auth_token):
+    def claim(self, auth_token, session: requests.Session):
         payload = {
             "tokenSymbol": auth_token
         }
         headers['Authorization'] = auth_token
         try:
-            response = requests.post(api_claim, json=payload, headers=headers)
+            response = session.post(api_claim, json=payload, headers=headers)
             if response.status_code == 200:
                 data_json = response.json()
                 self.last_claim = data_json['tran']['updated']
@@ -145,13 +146,13 @@ class Tapper:
         except Exception as e:
             logger.error(f"{self.session_name} cant claim KP. Error: {e}")
 
-    def checkin(self, auth_token):
+    def checkin(self, auth_token, session: requests.Session):
         payload = {
             "taskId": "0ok0vh5i0vpx95r"
         }
         headers['Authorization'] = auth_token
         try:
-            response = requests.post(api_checkin, json=payload, headers=headers)
+            response = session.post(api_checkin, json=payload, headers=headers)
             if response.status_code == 200:
                 logger.success(f"{self.session_name} | <green>Successfully claimed 4 KP.</green>")
             else:
@@ -161,10 +162,10 @@ class Tapper:
         except Exception as e:
             logger.error(f"{self.session_name} | Cant claim KP. Error: {e}")
 
-    def fetch_data_mining(self):
+    def fetch_data_mining(self, session: requests.Session):
         headers['Authorization'] = self.auth_token
         try:
-            response = requests.get(api_mining_data, headers=headers)
+            response = session.get(api_mining_data, headers=headers)
             if response.status_code == 200:
                 return response.json()
             else:
@@ -177,10 +178,10 @@ class Tapper:
             logger.error(f"{self.session_name} | Failed to fetch data. Error: {e}")
             return None
 
-    def feth_data_task(self):
+    def feth_data_task(self, session: requests.Session):
         headers['Authorization'] = self.auth_token
         try:
-            response = requests.get(api_task_data, headers=headers)
+            response = session.get(api_task_data, headers=headers)
             if response.status_code == 200:
                 return response.json()
             else:
@@ -192,10 +193,10 @@ class Tapper:
 
             logger.error(f"{self.session_name} | Failed to fetch tasks data. Error: {e}")
 
-    def get_upgrade_data(self):
+    def get_upgrade_data(self, session: requests.Session):
         headers['Authorization'] = self.auth_token
         try:
-            response = requests.get(api_get_upgrade_data, headers=headers)
+            response = session.get(api_get_upgrade_data, headers=headers)
             if response.status_code == 200:
                 return response.json()
             else:
@@ -207,7 +208,7 @@ class Tapper:
 
             logger.error(f"{self.session_name} | Failed to fetch tasks data. Error: {e}")
 
-    def upgrade(self, upgrade_id, type, level):
+    def upgrade(self, upgrade_id, type, level, session: requests.Session):
         if type == "booster":
             txt = "Mining speed"
         else:
@@ -217,7 +218,7 @@ class Tapper:
         }
         headers['Authorization'] = self.auth_token
         try:
-            response = requests.post(api_upgrade, json=payload, headers=headers)
+            response = session.post(api_upgrade, json=payload, headers=headers)
             if response.status_code == 200:
                 logger.success(f"{self.session_name} | <green>Successfully upgraded {txt} to lvl{level}</green>")
             else:
@@ -227,10 +228,10 @@ class Tapper:
         except Exception as e:
             logger.error(f"{self.session_name} | Upgrade {txt} to lvl{level} failed. Error: {e}")
 
-    def get_spin_data(self):
+    def get_spin_data(self, session: requests.Session):
         headers['Authorization'] = self.auth_token
         try:
-            response = requests.get(api_spin_data,headers=headers)
+            response = session.get(api_spin_data,headers=headers)
             if response.status_code == 200:
                 logger.info(f"{self.session_name} | <green>Get spin data successfully</green>")
                 return response.json()
@@ -241,14 +242,14 @@ class Tapper:
             logger.error(f"{self.session_name} | Get spin data failed. Error: {e}")
             return None
 
-    def spin(self, spinId, spinToken):
+    def spin(self, spinId, spinToken, session: requests.Session):
         payload = {
             "spinId": spinId,
             "spinToken": spinToken
         }
         headers['Authorization'] = self.auth_token
         try:
-            response = requests.post(api_spin, json=payload, headers=headers)
+            response = session.post(api_spin, json=payload, headers=headers)
             if response.status_code == 200:
                 json_data = response.json()
                 logger.success(f"{self.session_name} | <green>Spin successfully {json_data['reward']['name']}</green>")
@@ -265,16 +266,24 @@ class Tapper:
 
         headers["User-Agent"] = generate_random_user_agent(device_type='android', browser_type='chrome')
         http_client = CloudflareScraper(headers=headers, connector=proxy_conn)
+        session = requests.Session()
 
         if proxy:
-            await self.check_proxy(http_client=http_client, proxy=proxy)
+            proxy_check = await self.check_proxy(http_client=http_client, proxy=proxy)
+            if proxy_check:
+                proxy_type = proxy.split(':')[0]
+                proxies = {
+                    proxy_type: proxy
+                }
+                session.proxies.update(proxies)
+                logger.info(f"{self.session_name} | bind with proxy ip: {proxy}")
 
         token_live_time = randint(3500, 3600)
         while True:
             try:
                 if time() - access_token_created_time >= token_live_time:
                     tg_web_data = await self.get_tg_web_data(proxy=proxy)
-                    user_data = await self.get_user_data(http_client, tg_web_data)
+                    user_data = self.get_user_data(tg_web_data, session)
                     logger.info(f"{user_data['record']['name']} logged in...")
                     self.balace = user_data['record']['balance']
                     logger.info(f"{self.session_name} | Balance: <yellow>{user_data['record']['balance']} | Top {user_data['record']['topPercent']}%</yellow>")
@@ -285,7 +294,7 @@ class Tapper:
                 if settings.AUTO_SPIN:
                     can_spin = True
                     while can_spin:
-                        spin_data = self.get_spin_data()
+                        spin_data = self.get_spin_data(session)
                         if spin_data:
                             can_spin = False
                             for spin in spin_data['items']:
@@ -297,8 +306,9 @@ class Tapper:
                                     elif spin['level'] == 3:
                                         logger.info(f"{self.session_name} | Attemp to spin at top 60% - spend 20 KP...")
                                     if spin['remainingSpin'] > 0:
+                                        logger.info(f"{self.session_name} | No spin left...")
                                         can_spin = True
-                                        self.spin(spin['id'], spin['token'])
+                                        self.spin(spin['id'], spin['token'], session)
                         else:
                             break
 
@@ -306,8 +316,8 @@ class Tapper:
 
 
                 if settings.AUTO_UPGRADE:
-                    upgrade_data = self.get_upgrade_data()
-                    data = self.fetch_data_mining()
+                    upgrade_data = self.get_upgrade_data(session)
+                    data = self.fetch_data_mining(session)
                     mining_speed = data['items'][0]['items'][1]
                     mining_multi = data['items'][0]['items'][2]
                     if upgrade_data:
@@ -317,15 +327,15 @@ class Tapper:
                             if upgrade['type'] == "battery":
                                 continue
                             if upgrade['type'] == "booster" and upgrade['level'] == (mining_speed['level']+1):
-                                self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'])
+                                self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'], session)
                             if upgrade['type'] == "multiplier" and upgrade['level'] == (mining_multi['level']+1):
-                                self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'])
+                                self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'], session)
 
-                check_in_data = self.feth_data_task()
+                check_in_data = self.feth_data_task(session)
                 sleep_2 = 0
                 if check_in_data:
                     if check_in_data['items'][-1]['isCompleted'] is False:
-                        self.checkin(self.auth_token)
+                        self.checkin(self.auth_token, session)
                     else:
                         initial_time_str = check_in_data['items'][-1]['nextCheckinTime']
                         target_time = datetime.strptime(initial_time_str, '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -335,14 +345,14 @@ class Tapper:
                         sleep_ = randint(10, 20)
                         sleep_2 = seconds_left+sleep_
 
-                data = self.fetch_data_mining()
+                data = self.fetch_data_mining(session)
                 if data is None:
                     sleep_ = randint(100, 300)
                     logger.info(f"{self.session_name} | Sleep {sleep_}")
                     await asyncio.sleep(sleep_)
                 else:
                     if data['items'][0]['isClaimable']:
-                        self.claim(self.auth_token)
+                        self.claim(self.auth_token, session)
                     else:
                         initial_time_str = data['items'][0]['started_at']
                         initial_time = datetime.strptime(initial_time_str, '%Y-%m-%d %H:%M:%S.%fZ')
