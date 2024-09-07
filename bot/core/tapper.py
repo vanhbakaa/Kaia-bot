@@ -300,11 +300,13 @@ class Tapper:
                             for spin in spin_data['items']:
                                 if spin['isEligible']:
                                     if spin['level'] == 1:
-                                        logger.info(f"{self.session_name} | Attemp to spin at top 10% - spend 60 KP...")
+                                        logger.info(f"{self.session_name} | Attemp to spin at top 1k - spend 60 KP...")
                                     elif spin['level'] == 2:
-                                        logger.info(f"{self.session_name} | Attemp to spin at top 30% - spend 40 KP...")
+                                        logger.info(f"{self.session_name} | Attemp to spin at top 3k - spend 40 KP...")
                                     elif spin['level'] == 3:
-                                        logger.info(f"{self.session_name} | Attemp to spin at top 60% - spend 20 KP...")
+                                        logger.info(f"{self.session_name} | Attemp to spin at top 5k - spend 20 KP...")
+                                    elif spin['level'] == 4:
+                                        logger.info(f"{self.session_name} | Attemp to spin at top >5k - spend 10 KP...")
                                     if spin['remainingSpin'] > 0:
                                         logger.info(f"{self.session_name} | No spin left...")
                                         can_spin = True
