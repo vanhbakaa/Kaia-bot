@@ -208,7 +208,7 @@ class Tapper:
 
             logger.error(f"{self.session_name} | Failed to fetch tasks data. Error: {e}")
 
-    def upgrade(self, upgrade_id, type, level, session: requests.Session):
+    def upgrade(self, upgrade_id, type, level, price, session: requests.Session):
         if type == "booster":
             txt = "Mining speed"
         else:
@@ -220,7 +220,8 @@ class Tapper:
         try:
             response = session.post(api_upgrade, json=payload, headers=headers)
             if response.status_code == 200:
-                logger.success(f"{self.session_name} | <green>Successfully upgraded {txt} to lvl{level}</green>")
+                self.balace -= price
+                logger.success(f"{self.session_name} | <green>Successfully upgraded {txt} to lvl {level} - Cost {price} KP</green>")
             else:
                 data_json = response.json()
                 print(data_json)
@@ -329,9 +330,9 @@ class Tapper:
                             if upgrade['type'] == "battery":
                                 continue
                             if upgrade['type'] == "booster" and upgrade['level'] == (mining_speed['level']+1):
-                                self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'], session)
-                            if upgrade['type'] == "multiplier" and upgrade['level'] == (mining_multi['level']+1):
-                                self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'], session)
+                                self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'], upgrade['price'],session)
+                            elif upgrade['type'] == "multiplier" and upgrade['level'] == (mining_multi['level']+1):
+                                self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'], upgrade['price'], session)
 
                 check_in_data = self.feth_data_task(session)
                 sleep_2 = 0
