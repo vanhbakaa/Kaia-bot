@@ -297,21 +297,20 @@ class Tapper:
                     while can_spin:
                         spin_data = self.get_spin_data(session)
                         if spin_data:
-                            can_spin = False
                             for spin in spin_data['items']:
                                 if spin['isEligible']:
-                                    if spin['level'] == 1:
+                                    if spin['level'] == 1 and settings.LVL_TO_SPIN == 1:
                                         logger.info(f"{self.session_name} | Attemp to spin at top 1k - spend 60 KP...")
-                                    elif spin['level'] == 2:
+                                    elif spin['level'] == 2 and settings.LVL_TO_SPIN == 2:
                                         logger.info(f"{self.session_name} | Attemp to spin at top 3k - spend 40 KP...")
-                                    elif spin['level'] == 3:
+                                    elif spin['level'] == 3 and settings.LVL_TO_SPIN == 3:
                                         logger.info(f"{self.session_name} | Attemp to spin at top 5k - spend 20 KP...")
-                                    elif spin['level'] == 4:
+                                    elif spin['level'] == 4 and settings.LVL_TO_SPIN == 4:
                                         logger.info(f"{self.session_name} | Attemp to spin at top >5k - spend 10 KP...")
-                                    if spin['remainingSpin'] > 0:
-                                        logger.info(f"{self.session_name} | No spin left...")
-                                        can_spin = True
+                                    if spin['remainingSpin'] > 0 and settings.LVL_TO_SPIN >= spin['level']:
                                         self.spin(spin['id'], spin['token'], session)
+                                    else:
+                                        logger.info(f"{self.session_name} | No spin left...")
                         else:
                             break
 
