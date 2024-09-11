@@ -9,9 +9,10 @@ class Settings(BaseSettings):
 
     AUTO_UPGRADE: bool = True
     REF_LINK: str = "https://t.me/kaiaplaybot/app?startapp=ref-sfpx96ju54fv41n"
-    AUTO_SPIN: bool = False
+    AUTO_SPIN: bool = True
+    LVL_TO_SPIN: int = 3
 
-    USE_PROXY_FROM_FILE: bool = False
+    USE_PROXY_FROM_FILE: bool = True
 
 
 settings = Settings()
