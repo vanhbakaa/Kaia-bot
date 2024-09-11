@@ -22,6 +22,7 @@
 | **AUTO_UPGRADE**           | Automatically upgrade (mining speed and mutiplier) (default: True)                                            |           
 | **REF_LINK**               | Put your ref link here (default: my ref link)                                                                 |
 | **AUTO_SPIN**              | Auto Spin wheel (default: False) recommend turn off for new user                                              |
+| **LVL_TO_SPIN**              | Minimum wheel level to start spining (default: 3) (1 is highest spin rank )                                 |
 | **USE_PROXY_FROM_FILE**    | Whether to use a proxy from the bot/config/proxies.txt file (True / False)                                    |
 
 
