@@ -296,6 +296,7 @@ class Tapper:
                     can_spin = True
                     while can_spin:
                         spin_data = self.get_spin_data(session)
+                        can_spin = False
                         if spin_data:
                             for spin in spin_data['items']:
                                 if spin['isEligible']:
@@ -308,6 +309,7 @@ class Tapper:
                                     elif spin['level'] == 4 and settings.LVL_TO_SPIN == 4:
                                         logger.info(f"{self.session_name} | Attemp to spin at top >5k - spend 10 KP...")
                                     if spin['remainingSpin'] > 0 and settings.LVL_TO_SPIN >= spin['level']:
+                                        can_spin = True
                                         self.spin(spin['id'], spin['token'], session)
                                     else:
                                         logger.info(f"{self.session_name} | No spin left...")
