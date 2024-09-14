@@ -183,7 +183,10 @@ class Tapper:
         try:
             response = session.get(api_task_data, headers=headers)
             if response.status_code == 200:
-                return response.json()
+                data_json = response.json()
+                for task in data_json['items']:
+                    if task['action'] == "checkin" and task['reward_amount'] == 4:
+                        return task
             else:
                 data_json = response.json()
                 print(data_json)
@@ -336,12 +339,13 @@ class Tapper:
                                 self.upgrade(upgrade['id'], upgrade['type'], upgrade['level'], upgrade['price'], session)
 
                 check_in_data = self.feth_data_task(session)
+                # print(check_in_data)
                 sleep_2 = 0
                 if check_in_data:
-                    if check_in_data['items'][-1]['isCompleted'] is False:
+                    if check_in_data['isCompleted'] is False:
                         self.checkin(self.auth_token, session)
                     else:
-                        initial_time_str = check_in_data['items'][-1]['nextCheckinTime']
+                        initial_time_str = check_in_data['nextCheckinTime']
                         target_time = datetime.strptime(initial_time_str, '%Y-%m-%dT%H:%M:%S.%fZ')
                         current_time = datetime.utcnow()
                         time_left = target_time - current_time
@@ -385,7 +389,7 @@ async def run_tapper(tg_client: Client, proxy: str | None):
     try:
         sleep_ = randint(1, 15)
         logger.info(f"{tg_client.name} | start after {sleep_}s")
-        await asyncio.sleep(sleep_)
+        # await asyncio.sleep(sleep_)
         await Tapper(tg_client=tg_client).run(proxy=proxy)
     except InvalidSession:
         logger.error(f"{tg_client.name} | Invalid Session")
