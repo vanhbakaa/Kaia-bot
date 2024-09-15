@@ -12,7 +12,7 @@ from pyrogram.raw.types import InputBotAppShortName
 from pyrogram.raw.functions.messages import RequestAppWebView
 from bot.core.agents import generate_random_user_agent
 from bot.config import settings
-import requests
+import cloudscraper
 
 from bot.utils import logger
 from bot.exceptions import InvalidSession
@@ -114,7 +114,7 @@ class Tapper:
             return False
 
 
-    def get_user_data(self, query_id, session: requests.Session):
+    def get_user_data(self, query_id, session):
         payload = {
             "initData": query_id
         }
@@ -128,7 +128,7 @@ class Tapper:
         except Exception as e:
             logger.error(f"{self.session_name} cant get user data. Error: {e}")
 
-    def claim(self, auth_token, session: requests.Session):
+    def claim(self, auth_token, session):
         payload = {
             "tokenSymbol": auth_token
         }
@@ -146,7 +146,7 @@ class Tapper:
         except Exception as e:
             logger.error(f"{self.session_name} cant claim KP. Error: {e}")
 
-    def checkin(self, auth_token, session: requests.Session):
+    def checkin(self, auth_token, session):
         payload = {
             "taskId": "0ok0vh5i0vpx95r"
         }
@@ -162,7 +162,7 @@ class Tapper:
         except Exception as e:
             logger.error(f"{self.session_name} | Cant claim KP. Error: {e}")
 
-    def fetch_data_mining(self, session: requests.Session):
+    def fetch_data_mining(self, session):
         headers['Authorization'] = self.auth_token
         try:
             response = session.get(api_mining_data, headers=headers)
@@ -178,7 +178,7 @@ class Tapper:
             logger.error(f"{self.session_name} | Failed to fetch data. Error: {e}")
             return None
 
-    def feth_data_task(self, session: requests.Session):
+    def feth_data_task(self, session):
         headers['Authorization'] = self.auth_token
         try:
             response = session.get(api_task_data, headers=headers)
@@ -196,7 +196,7 @@ class Tapper:
 
             logger.error(f"{self.session_name} | Failed to fetch tasks data. Error: {e}")
 
-    def get_upgrade_data(self, session: requests.Session):
+    def get_upgrade_data(self, session):
         headers['Authorization'] = self.auth_token
         try:
             response = session.get(api_get_upgrade_data, headers=headers)
@@ -211,7 +211,7 @@ class Tapper:
 
             logger.error(f"{self.session_name} | Failed to fetch tasks data. Error: {e}")
 
-    def upgrade(self, upgrade_id, type, level, price, session: requests.Session):
+    def upgrade(self, upgrade_id, type, level, price, session):
         if type == "booster":
             txt = "Mining speed"
         else:
@@ -232,7 +232,7 @@ class Tapper:
         except Exception as e:
             logger.error(f"{self.session_name} | Upgrade {txt} to lvl{level} failed. Error: {e}")
 
-    def get_spin_data(self, session: requests.Session):
+    def get_spin_data(self, session):
         headers['Authorization'] = self.auth_token
         try:
             response = session.get(api_spin_data,headers=headers)
@@ -246,7 +246,7 @@ class Tapper:
             logger.error(f"{self.session_name} | Get spin data failed. Error: {e}")
             return None
 
-    def spin(self, spinId, spinToken, session: requests.Session):
+    def spin(self, spinId, spinToken, session):
         payload = {
             "spinId": spinId,
             "spinToken": spinToken
@@ -270,7 +270,7 @@ class Tapper:
 
         headers["User-Agent"] = generate_random_user_agent(device_type='android', browser_type='chrome')
         http_client = CloudflareScraper(headers=headers, connector=proxy_conn)
-        session = requests.Session()
+        session = cloudscraper.create_scraper()
 
         if proxy:
             proxy_check = await self.check_proxy(http_client=http_client, proxy=proxy)
