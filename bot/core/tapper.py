@@ -290,7 +290,7 @@ class Tapper:
                     user_data = self.get_user_data(tg_web_data, session)
                     logger.info(f"{user_data['record']['name']} logged in...")
                     self.balace = user_data['record']['balance']
-                    logger.info(f"{self.session_name} | Balance: <yellow>{user_data['record']['balance']} | Top {user_data['record']['topPercent']}%</yellow>")
+                    logger.info(f"{self.session_name} | Balance: <yellow>{user_data['record']['balance']} | Top {user_data['record']['topRank']}</yellow>")
                     self.auth_token = user_data['token']
                     access_token_created_time = time()
                     token_live_time = randint(3500, 3600)
