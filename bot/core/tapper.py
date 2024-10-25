@@ -346,7 +346,7 @@ class Tapper:
                         self.checkin(self.auth_token, session)
                     else:
                         initial_time_str = check_in_data['nextCheckinTime']
-                        target_time = datetime.strptime(initial_time_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+                        target_time = datetime.strptime(initial_time_str, '%Y-%m-%dT%H:%M:%SZ')
                         current_time = datetime.utcnow()
                         time_left = target_time - current_time
                         seconds_left = time_left.total_seconds()
